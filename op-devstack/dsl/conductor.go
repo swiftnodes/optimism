@@ -25,7 +25,8 @@ func (s ConductorSet) common() commonImpl {
 	return s[0].commonImpl
 }
 
-// Without returns the set without the given conductor.
+// Without returns the set without the given conductor, e.g. the survivors of
+// an injected failure.
 func (s ConductorSet) Without(exclude *Conductor) ConductorSet {
 	out := make(ConductorSet, 0, len(s))
 	for _, c := range s {
