@@ -73,7 +73,9 @@ The `just build-deps` target (called automatically by `just test` and `just acce
 1. **mise** — `mise install` (ensures gotestsum, forge, etc. are available)
 2. **Contracts** — `cd packages/contracts-bedrock && just install && just build-no-tests`
 3. **Cannon prestates** — `just cannon-prestates` (builds the kona prestate artifacts)
-4. **Rust binaries** — `just build-rust-release` (kona-node, op-rbuilder, rollup-boost)
+4. **Rust binaries** — `just build-rust-release` (kona-node, kona-host, op-reth). With
+   `RUST_JIT_BUILD=1`, tests also build additional selected binaries such as the test-only
+   `op-reth-sdm-fixture` on demand.
 
 You can also run `just build-deps` directly to pre-build without running tests.
 

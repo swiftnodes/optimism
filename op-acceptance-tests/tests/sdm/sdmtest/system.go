@@ -31,6 +31,22 @@ type RethSystem struct {
 	FunderL2     *dsl.FunderEOA
 }
 
+// NewFixtureSingleChainFaultProofSystem creates the single-chain super-fault-proof system with
+// the test-only fixture selected for its sequencer. The no-supernode preset already applies
+// OpRethOptions to the sequencer target; its super roots and all proof consumers remain stock.
+// VerifySDMFixture checks the running process, so this fails if fixture selection stops at preset
+// option validation or is applied to the wrong target.
+func NewFixtureSingleChainFaultProofSystem(t devtest.T) *presets.SingleChainInterop {
+	sysgo.SkipOnOpGeth(t, "SDM PostExec is op-reth only")
+
+	sys := presets.NewSingleChainInteropNoSupernode(t,
+		presets.WithOpRethOption(sysgo.OpRethWithBinary("op-reth-sdm-fixture")),
+	)
+	VerifySDMFixture(t, sys.L2ELA)
+	SetSDMEnabled(t, sys.L2ELA, true)
+	return sys
+}
+
 // FinishRethSystem wraps a built MixedSingleChainRuntime in DSL frontends, derives the verifier
 // refs + an L2 funder, and (when optInSDM is true) opts the sequencer in via
 // admin_setOperatorSdmOptIn. Shared by the stock-op-reth builder and any external premium-sequencer
@@ -109,6 +125,14 @@ func VerifyOpReth(t devtest.T, l2EL *dsl.L2ELNode) string {
 	return clientVersion
 }
 
+// VerifySDMFixture checks that an execution layer is the explicitly test-only fixture binary.
+func VerifySDMFixture(t devtest.T, l2EL *dsl.L2ELNode) string {
+	clientVersion := VerifyOpReth(t, l2EL)
+	t.Require().Contains(strings.ToLower(clientVersion), "op-reth-sdm-fixture",
+		"SDM producer must be the test-only fixture binary, got %q", clientVersion)
+	return clientVersion
+}
+
 // GetBlockWithTxs fetches a block with full transactions via eth_getBlockByNumber.
 func GetBlockWithTxs(t devtest.T, l2EL *dsl.L2ELNode, blockNum uint64) *sdmpkg.RPCBlock {
 	block, err := sdmpkg.GetBlockWithTxs(t.Ctx(), l2EL.Escape().L2EthClient().RPC(), blockNum)
@@ -116,8 +140,8 @@ func GetBlockWithTxs(t devtest.T, l2EL *dsl.L2ELNode, blockNum uint64) *sdmpkg.R
 	return block
 }
 
-// ReplayBlockWithSDM re-executes a block through debug_replaySDMBlock, returning the consensus
-// replay (synthesized PostExec payload, per-tx refund breakdown, and summary totals).
+// ReplayBlockWithSDM re-executes a block through debug_replaySDMBlock, returning raw gas,
+// embedded payload claims, structural mismatches, and summary totals.
 func ReplayBlockWithSDM(t devtest.T, l2EL *dsl.L2ELNode, blockNum uint64) *sdmpkg.ReplaySDMBlock {
 	replay, err := sdmpkg.ReplayBlockWithSDM(t.Ctx(), l2EL.Escape().L2EthClient().RPC(), blockNum, true)
 	t.Require().NoError(err, "debug_replaySDMBlock RPC failed for block %d", blockNum)

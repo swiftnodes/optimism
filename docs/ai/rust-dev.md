@@ -28,8 +28,6 @@ These crates are owned and edited directly here — do not look upstream for the
 
 **Known exception:** `op-alloy-flz` has not been migrated yet and is still an external dependency, tracked by [#21087](https://github.com/ethereum-optimism/optimism/issues/21087).
 
-**Still vendored:** `rust/op-rbuilder/` and `rust/rollup-boost/` are vendored copies, slated for deprecation.
-
 ## Build System
 
 Run `just --list` in `rust/` to see all available targets. The key ones:
