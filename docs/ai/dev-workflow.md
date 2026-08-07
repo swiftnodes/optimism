@@ -8,6 +8,10 @@ All tool versions are pinned in `mise.toml` at the repo root. Always access tool
 
 If mise reports the repo isn't trusted, ask the user to run `mise trust` — never trust it automatically.
 
+### Bumping a tool version in `mise.toml`
+
+Wait for a release to settle before pinning it. Release assets and GitHub attestations propagate asynchronously after a release is published — a brand-new release can be incomplete for hours, and every cold-cache CI install of it fails with errors like `No GitHub attestations found for aqua:<tool>, but attestations are expected`. Before merging a bump, confirm a clean cold install of the new version succeeds (e.g. `MISE_DATA_DIR=$(mktemp -d) mise install <tool>@<version>`); treat "attestations not yet published" as "not ready to merge", not as a flake to retry.
+
 ### Setup
 
 Run `mise install` to install all pinned tools (just, gotestsum, forge, etc.). AI agent shells typically do not have mise activated, so prefix commands with `mise exec --` to ensure tools are on `PATH`:
