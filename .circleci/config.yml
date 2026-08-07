@@ -128,6 +128,14 @@ jobs:
       # continuation job and silently force them all to cold-install forever.
       - utils/install-mise:
           enable_mise_cache: true
+      # mise shims re-resolve the tool on every invocation, which the yq/jq
+      # loops in the routing scripts below pay hundreds of times (~9s of
+      # overhead measured). Putting the resolved tool bin directories ahead
+      # of the shims makes those calls direct.
+      - run:
+          name: Put mise tool bin paths on PATH
+          command: |
+            echo "export PATH=\"$(mise bin-paths | paste -sd: -):\$PATH\"" >> "$BASH_ENV"
       # Validates the decision tree logic against known scenarios.
       # Fails fast if a refactor breaks expected workflow activation.
       - run:
